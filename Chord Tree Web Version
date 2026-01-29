@@ -1,0 +1,2079 @@
+<div id="chord-tree-wrapper">
+  <style>
+    /* =========================================================
+       WINDOWS TERMINAL (2025-ish) SKIN
+    ========================================================= */
+
+    :root {
+      /* Core */
+      --wt-bg: #0b0f14;
+      --wt-surface: rgba(18, 22, 30, 0.72);
+      --wt-surface-2: rgba(18, 22, 30, 0.86);
+      --wt-border: rgba(255, 255, 255, 0.10);
+      --wt-border-2: rgba(255, 255, 255, 0.14);
+      --wt-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
+      --wt-radius: 14px;
+      --wt-radius-sm: 10px;
+
+      /* Text */
+      --wt-fg: rgba(245, 247, 255, 0.92);
+      --wt-dim: rgba(197, 206, 232, 0.60);
+      --wt-dimmer: rgba(197, 206, 232, 0.42);
+
+      /* Accent + focus */
+      --wt-accent: #4cc2ff;
+      --wt-focus: 0 0 0 2px rgba(76, 194, 255, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+
+      /* Terminal-ish font stacks */
+      --wt-ui-font: "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+      --wt-mono: "Cascadia Mono", "Cascadia Code", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono",
+        monospace;
+
+      /* Your existing functional colors (kept) */
+      --c-res: #50fa7b;
+      --c-dia: #bd93f9;
+      --c-sec: #ffb86c;
+      --c-bor: #8be9fd;
+      --c-tri: #ff5555;
+      --c-cir: #ff79c6;
+
+      /* Old vars mapped to new */
+      --bg-color: var(--wt-bg);
+      --border-color: var(--wt-border);
+      --c-fg: var(--wt-fg);
+      --c-dim: var(--wt-dim);
+    }
+
+    #chord-tree-wrapper {
+      background: radial-gradient(1200px 900px at 12% -10%, rgba(76, 194, 255, 0.18), transparent 55%),
+        radial-gradient(900px 700px at 90% 0%, rgba(255, 121, 198, 0.12), transparent 60%),
+        linear-gradient(180deg, rgba(12, 16, 22, 0.92), rgba(10, 12, 16, 0.92));
+      color: var(--wt-fg);
+      font-family: var(--wt-ui-font);
+      padding: 14px;
+      border: 1px solid var(--wt-border);
+      border-radius: var(--wt-radius);
+      width: 100%;
+      max-width: 900px;
+      height: 900px;
+      max-height: 95dvh;
+      margin: 0 auto;
+      box-sizing: border-box;
+      box-shadow: var(--wt-shadow);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      user-select: none;
+      overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #chord-tree-wrapper::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.18);
+      backdrop-filter: blur(18px) saturate(140%);
+      -webkit-backdrop-filter: blur(18px) saturate(140%);
+      pointer-events: none;
+    }
+
+    #chord-tree-wrapper > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* =========================================================
+       TITLE BAR
+    ========================================================= */
+    #ct-titlebar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--wt-border);
+      border-radius: var(--wt-radius-sm);
+      background: linear-gradient(180deg, rgba(18, 22, 30, 0.75), rgba(18, 22, 30, 0.45));
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+      flex-shrink: 0;
+    }
+
+    .wt-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      padding-left: 4px;
+    }
+
+    .wt-title {
+      font-family: var(--wt-ui-font);
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      font-size: 13px;
+      color: rgba(245, 247, 255, 0.88);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .wt-title .by {
+      font-weight: 600;
+      opacity: 0.65;
+      margin-left: 10px;
+    }
+
+    .wt-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--wt-mono);
+      font-size: 12px;
+      color: var(--wt-dim);
+      white-space: nowrap;
+    }
+
+    .wt-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--wt-border);
+      background: rgba(10, 12, 16, 0.35);
+    }
+
+    .wt-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      color: rgba(245, 247, 255, 0.86);
+    }
+
+    .wt-led {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(197, 206, 232, 0.45);
+      box-shadow: 0 0 10px rgba(197, 206, 232, 0.18);
+    }
+    .wt-led.on {
+      background: rgba(76, 194, 255, 0.95);
+      box-shadow: 0 0 14px rgba(76, 194, 255, 0.35);
+    }
+
+    #ct-header-title {
+      display: none;
+    }
+
+    /* =========================================================
+       CONTROLS
+    ========================================================= */
+    #ct-controls {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 8px;
+      margin: 12px 0 12px 0;
+      padding: 10px 10px;
+      background: linear-gradient(180deg, rgba(18, 22, 30, 0.62), rgba(18, 22, 30, 0.38));
+      border: 1px solid var(--wt-border);
+      border-radius: var(--wt-radius-sm);
+      align-items: center;
+      flex-shrink: 0;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      justify-content: center;
+    }
+
+    #ct-controls::-webkit-scrollbar,
+    #ct-output::-webkit-scrollbar,
+    .modal-content::-webkit-scrollbar {
+      height: 10px;
+      width: 10px;
+    }
+    #ct-controls::-webkit-scrollbar-thumb,
+    #ct-output::-webkit-scrollbar-thumb,
+    .modal-content::-webkit-scrollbar-thumb {
+      background: rgba(197, 206, 232, 0.28);
+      border-radius: 999px;
+      border: 2px solid rgba(0, 0, 0, 0);
+      background-clip: padding-box;
+    }
+    #ct-controls::-webkit-scrollbar-track,
+    #ct-output::-webkit-scrollbar-track,
+    .modal-content::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 999px;
+    }
+
+    .ctrl-btn {
+      background: rgba(10, 12, 16, 0.38);
+      border: 1px solid var(--wt-border);
+      color: rgba(245, 247, 255, 0.82);
+      cursor: pointer;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--wt-ui-font);
+      font-weight: 700;
+      border-radius: 10px;
+      transition: transform 0.08s ease, background 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+      font-size: 11px;
+      white-space: nowrap;
+      padding: 0 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      flex: 0 0 auto;
+    }
+    .ctrl-btn:hover {
+      border-color: rgba(255, 255, 255, 0.22);
+      background: rgba(10, 12, 16, 0.58);
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+    }
+    .ctrl-btn:active {
+      transform: translateY(1px);
+    }
+    .ctrl-btn:focus-visible {
+      outline: none;
+      box-shadow: var(--wt-focus);
+    }
+
+    .btn-play {
+      border-color: rgba(255, 184, 108, 0.35);
+      color: rgba(255, 184, 108, 0.95);
+    }
+    .btn-play:hover {
+      background: rgba(255, 184, 108, 0.16);
+    }
+
+    .btn-stop {
+      border-color: rgba(255, 85, 85, 0.35);
+      color: rgba(255, 85, 85, 0.95);
+    }
+    .btn-stop:hover {
+      background: rgba(255, 85, 85, 0.14);
+    }
+
+    .btn-strum {
+      border-color: rgba(189, 147, 249, 0.35);
+      color: rgba(189, 147, 249, 0.95);
+    }
+    .btn-strum:hover {
+      background: rgba(189, 147, 249, 0.14);
+    }
+
+    .btn-help {
+      border-color: rgba(255, 255, 255, 0.28);
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: 800;
+    }
+    .btn-help:hover {
+      background: rgba(255, 255, 255, 0.10);
+    }
+
+    .btn-patreon {
+      border-color: rgba(255, 85, 85, 0.32);
+      color: rgba(255, 85, 85, 0.9);
+    }
+    .btn-patreon:hover {
+      background: rgba(255, 85, 85, 0.12);
+    }
+
+    .btn-midi {
+      border-color: rgba(255, 121, 198, 0.35);
+      color: rgba(255, 121, 198, 0.95);
+    }
+    .btn-midi:hover {
+      background: rgba(255, 121, 198, 0.12);
+    }
+
+    .btn-voice {
+      border-color: rgba(139, 233, 253, 0.35);
+      color: rgba(139, 233, 253, 0.95);
+    }
+    .btn-voice:hover {
+      background: rgba(139, 233, 253, 0.12);
+    }
+
+    /* =========================================================
+       KEYBOARD
+    ========================================================= */
+    #ct-keyboard {
+      height: 110px;
+      width: 100%;
+      margin-bottom: 12px;
+      position: relative;
+      background: linear-gradient(180deg, rgba(18, 22, 30, 0.78), rgba(18, 22, 30, 0.50));
+      border-radius: var(--wt-radius-sm);
+      border: 1px solid var(--wt-border);
+      display: flex;
+      justify-content: center;
+      padding: 10px 6px;
+      flex-shrink: 0;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35) inset, 0 10px 30px rgba(0, 0, 0, 0.25);
+      overflow: hidden;
+    }
+
+    .key {
+      position: relative;
+      float: left;
+      cursor: pointer;
+      border-radius: 0 0 6px 6px;
+      margin: 0 1px;
+      transition: background 0.1s, transform 0.08s;
+    }
+    .key:active {
+      transform: translateY(1px);
+    }
+    .key-white {
+      width: 2.5%;
+      height: 100%;
+      background: rgba(235, 240, 255, 0.78);
+      border: 1px solid rgba(0, 0, 0, 0.45);
+      z-index: 1;
+      box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.35) inset, 0 -10px 25px rgba(0, 0, 0, 0.18) inset;
+    }
+    .key-black {
+      width: 1.8%;
+      height: 60%;
+      background: rgba(10, 12, 16, 0.92);
+      border: 1px solid rgba(0, 0, 0, 0.75);
+      z-index: 2;
+      margin-left: -1.25%;
+      margin-right: -1.25%;
+      box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.08) inset, 0 -10px 25px rgba(0, 0, 0, 0.35) inset;
+    }
+    .key.active {
+      background: rgba(76, 194, 255, 0.9) !important;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35) inset, 0 0 18px rgba(76, 194, 255, 0.55);
+      border-color: rgba(255, 255, 255, 0.45) !important;
+    }
+
+    #center-marker {
+      position: absolute;
+      bottom: 8px;
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(76, 194, 255, 0.95);
+      z-index: 10;
+      transform: translateX(-50%);
+      transition: left 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      pointer-events: none;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.30) inset, 0 0 16px rgba(76, 194, 255, 0.45);
+    }
+
+    /* =========================================================
+       OUTPUT
+    ========================================================= */
+    #ct-output {
+      flex-grow: 1;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      padding: 10px 10px 0 10px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(197, 206, 232, 0.28) rgba(0, 0, 0, 0.2);
+      -webkit-overflow-scrolling: touch;
+
+      border: 1px solid var(--wt-border);
+      border-radius: var(--wt-radius-sm);
+      background: linear-gradient(180deg, rgba(10, 12, 16, 0.35), rgba(10, 12, 16, 0.18));
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+      font-family: var(--wt-mono);
+    }
+
+    .history-item {
+      display: inline-block;
+      padding: 7px 10px;
+      margin: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: rgba(197, 206, 232, 0.72);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s, transform 0.08s, color 0.12s;
+      font-size: 13px;
+      background: rgba(0, 0, 0, 0.20);
+    }
+    .history-item:hover,
+    .history-item:active {
+      border-color: rgba(76, 194, 255, 0.35);
+      color: rgba(245, 247, 255, 0.92);
+      background: rgba(76, 194, 255, 0.08);
+    }
+    .history-item:active {
+      transform: translateY(1px);
+    }
+    .history-item.playing {
+      border-color: rgba(255, 184, 108, 0.40);
+      color: rgba(255, 184, 108, 0.95);
+      background: rgba(255, 184, 108, 0.10);
+      box-shadow: 0 0 18px rgba(255, 184, 108, 0.16);
+    }
+    .history-item.locked {
+      border-color: rgba(255, 85, 85, 0.42);
+      color: rgba(255, 85, 85, 0.92);
+      background: rgba(255, 85, 85, 0.08);
+    }
+
+    .history-separator {
+      display: flex;
+      align-items: center;
+      color: rgba(197, 206, 232, 0.58);
+      font-size: 11px;
+      margin: 18px 0 10px 0;
+      letter-spacing: 1.6px;
+      text-transform: uppercase;
+    }
+    .history-separator::before,
+    .history-separator::after {
+      content: "";
+      flex: 1;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+      margin: 0 10px;
+    }
+
+    .suggestion-row {
+      display: grid;
+      grid-template-columns: 30px 160px 80px 1fr;
+      align-items: center;
+      padding: 10px 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.12s;
+      border-radius: 10px;
+      margin: 2px 0;
+    }
+    .suggestion-row:hover,
+    .suggestion-row:active {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .s-idx {
+      color: rgba(197, 206, 232, 0.55);
+      font-weight: 800;
+      font-size: 12px;
+    }
+    .s-name {
+      font-weight: 800;
+      font-size: 14px;
+      color: rgba(245, 247, 255, 0.92);
+      letter-spacing: 0.2px;
+    }
+    .s-notes {
+      font-size: 12px;
+      color: rgba(197, 206, 232, 0.55);
+      opacity: 1;
+      font-family: var(--wt-mono);
+    }
+
+    .type-tag {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+    }
+    .t-res { color: rgba(80, 250, 123, 0.95); }
+    .t-dia { color: rgba(189, 147, 249, 0.95); }
+    .t-sec { color: rgba(255, 184, 108, 0.95); }
+    .t-bor { color: rgba(139, 233, 253, 0.95); }
+    .t-tri { color: rgba(255, 85, 85, 0.95); }
+    .t-cir { color: rgba(255, 121, 198, 0.95); }
+
+    /* =========================================================
+       THEORY BOX
+    ========================================================= */
+    #ct-theory-box {
+      border: 1px solid var(--wt-border);
+      border-radius: var(--wt-radius-sm);
+      background: linear-gradient(180deg, rgba(18, 22, 30, 0.62), rgba(18, 22, 30, 0.38));
+      padding: 12px 14px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      font-size: 13px;
+      color: rgba(245, 247, 255, 0.86);
+      margin-bottom: 12px;
+      flex-shrink: 0;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+      font-family: var(--wt-mono);
+    }
+    .theory-label {
+      color: rgba(76, 194, 255, 0.95);
+      font-weight: 900;
+      margin-right: 12px;
+      font-size: 12px;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+    }
+
+    /* =========================================================
+       INPUT
+    ========================================================= */
+    #ct-input-line {
+      display: flex;
+      border-top: 1px solid rgba(255, 255, 255, 0.10);
+      padding-top: 12px;
+      align-items: center;
+      flex-shrink: 0;
+      gap: 10px;
+      font-family: var(--wt-mono);
+    }
+    #ct-prompt {
+      color: rgba(76, 194, 255, 0.95);
+      font-weight: 900;
+      font-size: 14px;
+      letter-spacing: 0.4px;
+    }
+    #ct-input {
+      background: rgba(10, 12, 16, 0.30);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      color: rgba(245, 247, 255, 0.92);
+      font-family: var(--wt-mono);
+      font-size: 14px;
+      flex-grow: 1;
+      outline: none;
+      padding: 10px 12px;
+      border-radius: 10px;
+      transition: box-shadow 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+    }
+    #ct-input:focus {
+      border-color: rgba(76, 194, 255, 0.35);
+      box-shadow: var(--wt-focus);
+      background: rgba(10, 12, 16, 0.40);
+    }
+    #ct-input::placeholder {
+      color: rgba(197, 206, 232, 0.42);
+      opacity: 1;
+      font-style: normal;
+    }
+
+    /* =========================================================
+       MODALS
+    ========================================================= */
+    .ct-modal {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      z-index: 200;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(16px) saturate(130%);
+      -webkit-backdrop-filter: blur(16px) saturate(130%);
+    }
+
+    .modal-content {
+      background: linear-gradient(180deg, rgba(18, 22, 30, 0.90), rgba(18, 22, 30, 0.72));
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      padding: 18px;
+      border-radius: 16px;
+      width: 92%;
+      max-width: 600px;
+      box-shadow: 0 20px 70px rgba(0, 0, 0, 0.55);
+      color: rgba(245, 247, 255, 0.92);
+      max-height: 90vh;
+      overflow-y: auto;
+      font-family: var(--wt-ui-font);
+    }
+
+    .modal-title {
+      color: rgba(245, 247, 255, 0.92);
+      font-size: 14px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+      padding-bottom: 10px;
+      letter-spacing: 1.2px;
+      text-align: left;
+      font-weight: 800;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .modal-title .hint {
+      font-family: var(--wt-mono);
+      font-weight: 700;
+      font-size: 12px;
+      color: rgba(197, 206, 232, 0.58);
+      text-transform: none;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .help-table {
+      display: table;
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--wt-ui-font);
+    }
+    .help-row { display: table-row; }
+    .help-cell-key {
+      display: table-cell;
+      padding: 8px 0;
+      width: 130px;
+      vertical-align: top;
+    }
+    .help-cell-desc {
+      display: table-cell;
+      padding: 8px 0;
+      color: rgba(197, 206, 232, 0.70);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .key-badge {
+      background: rgba(10, 12, 16, 0.35);
+      color: rgba(245, 247, 255, 0.88);
+      padding: 4px 8px;
+      border-radius: 10px;
+      font-size: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      font-weight: 800;
+      display: inline-block;
+      font-family: var(--wt-mono);
+      letter-spacing: 0.2px;
+    }
+
+    .close-help {
+      margin-top: 16px;
+      width: 100%;
+      padding: 11px 12px;
+      background: rgba(76, 194, 255, 0.18);
+      color: rgba(245, 247, 255, 0.92);
+      border: 1px solid rgba(76, 194, 255, 0.30);
+      font-weight: 900;
+      cursor: pointer;
+      border-radius: 12px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      transition: background 0.12s ease, border-color 0.12s ease, transform 0.08s ease;
+      font-family: var(--wt-ui-font);
+    }
+    .close-help:hover {
+      background: rgba(76, 194, 255, 0.24);
+      border-color: rgba(76, 194, 255, 0.40);
+    }
+    .close-help:active { transform: translateY(1px); }
+    .close-help:focus-visible { outline: none; box-shadow: var(--wt-focus); }
+
+    .midi-section {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(0, 0, 0, 0.18);
+      border-radius: 14px;
+      padding: 14px;
+      margin-top: 12px;
+    }
+    .midi-label {
+      font-weight: 900;
+      letter-spacing: 1.2px;
+      color: rgba(255, 121, 198, 0.92);
+      font-size: 12px;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+    .voice-label {
+      font-weight: 900;
+      letter-spacing: 1.2px;
+      color: rgba(139, 233, 253, 0.92);
+      font-size: 12px;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+    .midi-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin: 10px 0;
+      flex-wrap: wrap;
+    }
+    .midi-row .mini {
+      font-size: 12px;
+      color: rgba(245, 247, 255, 0.88);
+      opacity: 0.9;
+      min-width: 95px;
+      font-family: var(--wt-mono);
+    }
+    .ct-select,
+    .ct-toggle {
+      background: rgba(10, 12, 16, 0.35);
+      color: rgba(245, 247, 255, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 12px;
+      padding: 10px 10px;
+      font-family: var(--wt-ui-font);
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      outline: none;
+    }
+    .ct-select { min-width: 260px; max-width: 100%; }
+    .ct-select:focus-visible,
+    .ct-toggle:focus-visible {
+      box-shadow: var(--wt-focus);
+      border-color: rgba(76, 194, 255, 0.30);
+    }
+    .ct-toggle {
+      cursor: pointer;
+      border-color: rgba(255, 121, 198, 0.35);
+      color: rgba(255, 121, 198, 0.95);
+      background: rgba(255, 121, 198, 0.10);
+      text-transform: uppercase;
+    }
+    .ct-toggle.on {
+      background: rgba(255, 121, 198, 0.24);
+      border-color: rgba(255, 121, 198, 0.50);
+      color: rgba(245, 247, 255, 0.92);
+    }
+    .ct-toggle.voice {
+      border-color: rgba(139, 233, 253, 0.35);
+      color: rgba(139, 233, 253, 0.95);
+      background: rgba(139, 233, 253, 0.10);
+    }
+    .ct-toggle.voice.on {
+      background: rgba(139, 233, 253, 0.22);
+      border-color: rgba(139, 233, 253, 0.50);
+      color: rgba(245, 247, 255, 0.92);
+    }
+
+    .midi-status {
+      margin-top: 10px;
+      color: rgba(197, 206, 232, 0.70);
+      font-size: 12px;
+      line-height: 1.45;
+      font-family: var(--wt-mono);
+      white-space: pre-wrap;
+      background: rgba(10, 12, 16, 0.22);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 12px;
+      padding: 10px;
+    }
+
+    @media (max-width: 600px) {
+      #chord-tree-wrapper {
+        padding: 10px;
+        height: 92dvh;
+        border-radius: 0;
+        border: none;
+      }
+      #ct-titlebar { border-radius: 0; }
+      #ct-keyboard { height: 80px; }
+      .suggestion-row { grid-template-columns: 25px 1fr 1fr; padding: 12px 8px; }
+      .s-notes { display: none; }
+      .help-cell-key { width: 120px; }
+      .ct-select { min-width: 100%; }
+      .wt-right { display: none; }
+    }
+  </style>
+
+  <!-- HELP MODAL -->
+  <div id="help-modal" class="ct-modal">
+    <div class="modal-content">
+      <div class="modal-title">
+        SYSTEM MANUAL
+        <span class="hint">Esc to close</span>
+      </div>
+      <div class="help-table">
+        <div class="help-row">
+          <div class="help-cell-key"><span class="key-badge">1-8 / Shift+Click</span></div>
+          <div class="help-cell-desc">Select/Add suggested chord.</div>
+        </div>
+        <div class="help-row">
+          <div class="help-cell-key"><span class="key-badge">Ctrl+Click (Chord)</span></div>
+          <div class="help-cell-desc">Remove a chord from the branch.</div>
+        </div>
+        <div class="help-row">
+          <div class="help-cell-key"><span class="key-badge">0</span></div>
+          <div class="help-cell-desc">Reset the tree and clear history.</div>
+        </div>
+        <div class="help-row">
+          <div class="help-cell-key"><span class="key-badge">Lock</span></div>
+          <div class="help-cell-desc">Shift+Click (or Long Press on Mobile) to lock a chord's voicing.</div>
+        </div>
+        <div class="help-row">
+          <div class="help-cell-key"><span class="key-badge">Space</span></div>
+          <div class="help-cell-desc">Play or Pause the sequence.</div>
+        </div>
+        <div class="help-row">
+          <div class="help-cell-key"><span class="key-badge">VOICE</span></div>
+          <div class="help-cell-desc">Open voicing controls: Bass Drop, Inversions, and Spread. Type <b>v</b> + Enter.</div>
+        </div>
+        <div class="help-row">
+          <div class="help-cell-key"><span class="key-badge">CENTER</span></div>
+          <div class="help-cell-desc">Click/Tap keys to set anchor pitch. Chords voice around this note.</div>
+        </div>
+        <div class="help-row">
+          <div class="help-cell-key"><span class="key-badge">MIDI</span></div>
+          <div class="help-cell-desc">Open MIDI setup. Type <b>m</b> + Enter.</div>
+        </div>
+      </div>
+      <button class="close-help" onclick="document.getElementById('help-modal').style.display='none'">CLOSE</button>
+    </div>
+  </div>
+
+  <!-- MIDI MODAL -->
+  <div id="midi-modal" class="ct-modal">
+    <div class="modal-content">
+      <div class="modal-title">
+        MIDI SETUP
+        <span class="hint">Esc to close</span>
+      </div>
+
+      <div class="midi-section">
+        <div class="midi-label">OUTPUT ROUTING</div>
+
+        <div class="midi-row">
+          <div class="mini">MIDI OUT</div>
+          <button id="midi-enable-btn" class="ct-toggle">OFF</button>
+        </div>
+
+        <div class="midi-row">
+          <div class="mini">AUDIO ENGINE</div>
+          <button id="audio-enable-btn" class="ct-toggle on">ON</button>
+        </div>
+
+        <div class="midi-row">
+          <div class="mini">PORT</div>
+          <select id="midi-port-select" class="ct-select"></select>
+        </div>
+
+        <div class="midi-row">
+          <div class="mini">CHANNEL</div>
+          <select id="midi-channel-select" class="ct-select" style="min-width: 120px; width: 120px"></select>
+        </div>
+
+        <div class="midi-row">
+          <div class="mini">GATE LEN</div>
+          <select id="midi-gate-select" class="ct-select" style="min-width: 120px; width: 120px">
+            <option value="0.25">1/16 Note</option>
+            <option value="0.5">1/8 Note</option>
+            <option value="1">1/4 Note</option>
+            <option value="2">1/2 Note</option>
+            <option value="4">Whole Note</option>
+          </select>
+        </div>
+
+        <div class="midi-status" id="midi-status">
+          MIDI not initialized. Click MIDI OUT to request access and populate ports.
+        </div>
+      </div>
+
+      <button class="close-help" id="close-midi-btn">CLOSE</button>
+    </div>
+  </div>
+
+  <!-- VOICING MODAL -->
+  <div id="voice-modal" class="ct-modal">
+    <div class="modal-content">
+      <div class="modal-title">
+        VOICING SETUP
+        <span class="hint">Esc to close</span>
+      </div>
+
+      <div class="midi-section">
+        <div class="voice-label">BASS / INVERSION / SPREAD</div>
+
+        <div class="midi-row">
+          <div class="mini">BASS DROP</div>
+          <select id="voice-bass-select" class="ct-select" style="min-width: 160px; width: 160px">
+            <option value="0">0 (Root Region)</option>
+            <option value="-1">-1 (Octave Down)</option>
+            <option value="-2">-2 (Deep Sub)</option>
+          </select>
+        </div>
+
+        <div class="midi-row">
+          <div class="mini">INVERSION</div>
+          <select id="voice-inv-select" class="ct-select" style="min-width: 160px; width: 160px">
+            <option value="0">Root</option>
+            <option value="1">1st</option>
+            <option value="2">2nd</option>
+          </select>
+        </div>
+
+        <div class="midi-row">
+          <div class="mini">SPREAD</div>
+          <button id="voice-spread-btn" class="ct-toggle voice on">ON</button>
+        </div>
+
+        <div class="midi-status" id="voice-status">
+          Spread uses “drop voicing” principles (school-style) and clamps extreme octave displacement to keep the chord coherent.
+        </div>
+      </div>
+
+      <button class="close-help" id="close-voice-btn">CLOSE</button>
+    </div>
+  </div>
+
+  <!-- TITLE BAR -->
+  <div id="ct-titlebar">
+    <div class="wt-left">
+      <div class="wt-title">
+        CHORD TREE
+        <span class="by">BY EZBOT</span>
+      </div>
+    </div>
+
+    <div class="wt-right">
+      <span class="wt-pill">
+        <span class="wt-badge"><span class="wt-led" id="wt-midi-led"></span> MIDI</span>
+        <span id="wt-midi-mini" style="opacity: 0.75">OFF</span>
+      </span>
+    </div>
+  </div>
+
+  <div id="ct-header-title">CHORD TREE <span style="font-size: 0.6em; opacity: 0.7; vertical-align: middle">BY EZBOT</span></div>
+
+  <!-- MAIN CONTROLS -->
+  <div id="ct-controls">
+    <button class="ctrl-btn btn-voice" id="voice-btn" title="Voicing Setup">VOICE</button>
+    <button class="ctrl-btn btn-strum" id="strum-btn" title="Toggle Strumming">STRUM: ON</button>
+    <button class="ctrl-btn" id="bpm-btn" title="Change Tempo">BPM: 90</button>
+    <button class="ctrl-btn" id="interval-btn" title="Playback Speed">1/2 BAR</button>
+
+    <button class="ctrl-btn btn-midi" id="midi-btn" title="MIDI Setup">MIDI</button>
+
+    <button class="ctrl-btn btn-play" id="play-btn">▶ PLAY</button>
+    <button class="ctrl-btn btn-stop" id="stop-btn">■ STOP</button>
+    <button class="ctrl-btn btn-help" id="help-btn" title="Manual">?</button>
+    <button class="ctrl-btn btn-patreon" id="patreon-btn" title="Support Development">♥ SUPPORT</button>
+  </div>
+
+  <div id="ct-keyboard">
+    <div id="center-marker"></div>
+  </div>
+
+  <div id="ct-output"></div>
+
+  <div id="ct-theory-box">
+    <div style="width: 100%">
+      <span class="theory-label">THEORY</span>
+      <span id="theory-text">Waiting for input...</span>
+    </div>
+  </div>
+
+  <div id="ct-input-line">
+    <span id="ct-prompt">$&gt;</span>
+    <input type="text" id="ct-input" autocomplete="off" placeholder="Enter chord (e.g. 'Cm9') or 'h'..." autofocus />
+  </div>
+
+  <script>
+    (function () {
+      // --- AUDIO & MIDI ---
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      let audioCtx = null;
+
+      // MIDI state
+      let midiAccess = null;
+      let midiOutput = null;
+      let midiEnabled = false;
+      let midiChannel = 1; // 1..16
+      let midiGateBeats = 0.25; // Default 1/16th
+
+      // Audio state
+      let audioEnabled = true;
+
+      // Titlebar mini status
+      const wtMidiLed = document.getElementById("wt-midi-led");
+      const wtMidiMini = document.getElementById("wt-midi-mini");
+
+      function initAudio() {
+        if (!audioCtx) audioCtx = new AudioCtx();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+      }
+
+      window.addEventListener(
+        "touchstart",
+        function () {
+          initAudio();
+        },
+        { once: true }
+      );
+
+      async function initMidi() {
+        if (!navigator.requestMIDIAccess) return false;
+        try {
+          midiAccess = await navigator.requestMIDIAccess({ sysex: false });
+          attachMidiHotplugHandlers();
+          return true;
+        } catch (e) {
+          console.log("MIDI Failed", e);
+          midiAccess = null;
+          return false;
+        }
+      }
+
+      function attachMidiHotplugHandlers() {
+        if (!midiAccess) return;
+        midiAccess.onstatechange = () => {
+          populateMidiPortSelect();
+          syncMidiStatus();
+          syncTitlebarMidi();
+        };
+      }
+
+      function getMidiOutputsArray() {
+        if (!midiAccess) return [];
+        return Array.from(midiAccess.outputs.values());
+      }
+
+      function playFreq(freq, startTime) {
+        if (!audioCtx || !audioEnabled) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "triangle";
+        const release = 1.25;
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(0.2, startTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + release);
+        osc.frequency.value = freq;
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(startTime);
+        osc.stop(startTime + release + 0.1);
+      }
+
+      function clampMidiChannel(ch) {
+        ch = parseInt(ch, 10);
+        if (Number.isNaN(ch)) return 1;
+        return Math.min(16, Math.max(1, ch));
+      }
+
+      function sendMidiNote(midiVal, durationSec, velocity = 90) {
+        if (!midiEnabled || !midiOutput) return;
+        const ch = clampMidiChannel(midiChannel) - 1;
+        const noteOn = 0x90 + ch;
+        const noteOff = 0x80 + ch;
+        const vel = Math.min(127, Math.max(1, velocity | 0));
+
+        const nowMs = performance.now();
+        midiOutput.send([noteOn, midiVal, vel], nowMs);
+        midiOutput.send([noteOff, midiVal, 0], nowMs + durationSec * 1000);
+      }
+
+      function playMidiNotes(midiNotes, duration = 2.0) {
+        initAudio();
+        const now = audioCtx.currentTime;
+        highlightKeys(midiNotes);
+        let stagger = strumMode ? 0.06 : 0;
+
+        let beatSec = 60 / bpm;
+        let actualGateSec = beatSec * midiGateBeats;
+
+        midiNotes.forEach((m, i) => {
+          let freq = 440 * Math.pow(2, (m - 69) / 12);
+          let timing = now + i * stagger;
+          playFreq(freq, timing);
+
+          const noteDelaySec = i * stagger;
+          setTimeout(() => {
+            sendMidiNote(m, actualGateSec);
+          }, noteDelaySec * 1000);
+        });
+      }
+
+      // --- UI ELEMENTS ---
+      const keyboardDiv = document.getElementById("ct-keyboard");
+      const centerMarker = document.getElementById("center-marker");
+      const outDiv = document.getElementById("ct-output");
+      const inBox = document.getElementById("ct-input");
+      const theoryText = document.getElementById("theory-text");
+
+      const helpModal = document.getElementById("help-modal");
+      const midiModal = document.getElementById("midi-modal");
+      const voiceModal = document.getElementById("voice-modal");
+
+      const midiBtn = document.getElementById("midi-btn");
+      const voiceBtn = document.getElementById("voice-btn");
+
+      // MIDI modal controls
+      const midiEnableBtn = document.getElementById("midi-enable-btn");
+      const midiPortSelect = document.getElementById("midi-port-select");
+      const midiChannelSelect = document.getElementById("midi-channel-select");
+      const midiStatus = document.getElementById("midi-status");
+      const closeMidiBtn = document.getElementById("close-midi-btn");
+
+      // MIDI controls
+      const audioEnableBtn = document.getElementById("audio-enable-btn");
+      const midiGateSelect = document.getElementById("midi-gate-select");
+
+      // VOICING modal controls
+      const voiceBassSelect = document.getElementById("voice-bass-select");
+      const voiceInvSelect = document.getElementById("voice-inv-select");
+      const voiceSpreadBtn = document.getElementById("voice-spread-btn");
+      const closeVoiceBtn = document.getElementById("close-voice-btn");
+
+      let keyMap = {};
+      let keyStartMidi = 36;
+      let keyEndMidi = 84;
+
+      function renderKeyboard() {
+        keyboardDiv.innerHTML = "";
+        keyboardDiv.appendChild(centerMarker);
+        keyMap = {};
+        for (let m = keyStartMidi; m <= keyEndMidi; m++) {
+          let noteInOct = m % 12;
+          let isBlack = [1, 3, 6, 8, 10].includes(noteInOct);
+          let key = document.createElement("div");
+          key.className = `key ${isBlack ? "key-black" : "key-white"}`;
+          key.dataset.midi = m;
+          key.addEventListener("mousedown", (e) => {
+            e.preventDefault();
+            setCenter(m);
+          });
+          key.addEventListener("touchstart", (e) => {
+            e.preventDefault();
+            setCenter(m);
+          });
+          keyboardDiv.appendChild(key);
+          keyMap[m] = key;
+        }
+        updateCenterMarker(centerMidi);
+      }
+
+      function highlightKeys(midiNotes) {
+        document.querySelectorAll(".key.active").forEach((k) => k.classList.remove("active"));
+        midiNotes.forEach((m) => {
+          if (keyMap[m]) keyMap[m].classList.add("active");
+        });
+        setTimeout(() => {
+          document.querySelectorAll(".key.active").forEach((k) => k.classList.remove("active"));
+        }, 1000);
+      }
+
+      function updateCenterMarker(midi) {
+        if (keyMap[midi]) {
+          centerMarker.style.display = "block";
+          let el = keyMap[midi];
+          centerMarker.style.left = el.offsetLeft + el.offsetWidth / 2 + "px";
+        } else {
+          centerMarker.style.display = "none";
+        }
+      }
+
+      // --- THEORY LOGIC ---
+      const SHARPS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+      const FLATS  = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+      const SCALES = { Major: [0, 2, 4, 5, 7, 9, 11], Minor: [0, 2, 3, 5, 7, 8, 10] };
+
+      function toSharp(note) {
+        const map = { Db: "C#", Eb: "D#", Gb: "F#", Ab: "G#", Bb: "A#" };
+        return map[note] || note;
+      }
+
+      // Flat-preference detection (works even though keyRoot is stored in sharps)
+      const FLAT_KEY_ROOTS_SHARP = new Set(["F", "A#", "D#", "G#", "C#", "F#"]); // F, Bb, Eb, Ab, Db, Gb
+      const MINOR_FLAT_PREF_SHARP = new Set(["D", "G", "C", "F", "A#"]); // Dm,Gm,Cm,Fm,Bbm(A#m)
+
+      function prefersFlats(keyRootSharp, keyType) {
+        if (keyType === "Minor" && MINOR_FLAT_PREF_SHARP.has(keyRootSharp)) return true;
+        return FLAT_KEY_ROOTS_SHARP.has(keyRootSharp);
+      }
+
+      function displayNote(noteSharp, keyRootSharp, keyType) {
+        if (!SHARPS.includes(noteSharp)) return noteSharp;
+        const idx = SHARPS.indexOf(noteSharp);
+        return prefersFlats(keyRootSharp, keyType) ? FLATS[idx] : SHARPS[idx];
+      }
+
+      // =========================================================
+      // “SCHOOL” SPREADING (DROP-VOICING PRINCIPLES)
+      // =========================================================
+      function applyAcademicDropSpread(sortedNotes) {
+        if (!sortedNotes || sortedNotes.length < 3) return sortedNotes;
+
+        let notes = sortedNotes.slice().sort((a, b) => a - b);
+        const bass = notes[0];
+
+        function clampToRegister(n, minAbove, maxAbove) {
+          while (n - bass > maxAbove) n -= 12;
+          while (n - bass < minAbove) n += 12;
+          return n;
+        }
+
+        for (let i = 1; i < notes.length; i++) {
+          notes[i] = clampToRegister(notes[i], 3, 19);
+        }
+        notes.sort((a, b) => a - b);
+
+        if (notes.length === 4) {
+          const candidate = notes.slice();
+          const idx = candidate.length - 2;
+          candidate[idx] = candidate[idx] - 12;
+
+          candidate[idx] = clampToRegister(candidate[idx], 3, 19);
+          candidate.sort((a, b) => a - b);
+
+          const spanCand = candidate[candidate.length - 1] - bass;
+
+          function minUpperInterval(arr) {
+            let m = 999;
+            for (let i = 2; i < arr.length; i++) m = Math.min(m, arr[i] - arr[i - 1]);
+            return m === 999 ? 0 : m;
+          }
+
+          const minIntNow = minUpperInterval(notes);
+          const minIntCand = minUpperInterval(candidate);
+
+          if (spanCand <= 19 && minIntCand > minIntNow) {
+            notes = candidate;
+          }
+        }
+
+        for (let pass = 0; pass < 3; pass++) {
+          notes.sort((a, b) => a - b);
+          let changed = false;
+          for (let i = 2; i < notes.length; i++) {
+            const gap = notes[i] - notes[i - 1];
+            if (gap > 10) {
+              const folded = notes[i] - 12;
+              if (folded - notes[i - 1] >= 3 && folded - bass >= 3) {
+                notes[i] = folded;
+                changed = true;
+              }
+            }
+          }
+          if (!changed) break;
+        }
+
+        notes.sort((a, b) => a - b);
+        for (let i = 1; i < notes.length; i++) {
+          notes[i] = clampToRegister(notes[i], 3, 19);
+        }
+        notes.sort((a, b) => a - b);
+
+        for (let i = 1; i < notes.length; i++) {
+          if (notes[i] <= notes[i - 1]) {
+            notes[i] += 12;
+            notes[i] = clampToRegister(notes[i], 3, 19);
+          }
+        }
+        notes.sort((a, b) => a - b);
+
+        return notes;
+      }
+
+      // FIXED: correct 7th parsing order + #11 support (+ basic b9/#9/b13)
+      function getVoicedMidi(root, qual, cMidi, bassDrop, inv = 0, spread = false) {
+        const r = toSharp(root);
+        const rIdx = SHARPS.indexOf(r);
+        if (rIdx === -1) return [];
+
+        let intervals = [0, 4, 7];
+        if (["m", "min"].some((x) => qual.startsWith(x))) intervals = [0, 3, 7];
+        if (qual.includes("dim")) intervals = [0, 3, 6];
+        if (qual.includes("aug")) intervals = [0, 4, 8];
+        if (qual.includes("sus4")) intervals = [0, 5, 7];
+        if (qual.includes("sus2")) intervals = [0, 2, 7];
+
+        // --- 7th logic (ORDER MATTERS) ---
+        if (qual.includes("m7b5")) {
+          intervals = [0, 3, 6, 10];
+        } else if (qual.includes("dim7")) {
+          intervals = intervals.slice(0, 3);
+          intervals.push(9);
+        } else if (qual.includes("Maj7")) {
+          intervals.push(11);
+        } else if (qual.includes("m7")) {
+          intervals.push(10);
+        } else if (qual.includes("7")) {
+          intervals.push(10);
+        }
+
+        if (qual.includes("6")) intervals.push(9);
+
+        // Extensions with basic alterations
+        if (qual.includes("b9")) intervals.push(13);
+        else if (qual.includes("#9")) intervals.push(15);
+        else if (qual.includes("9")) intervals.push(14);
+
+        if (qual.includes("#11")) intervals.push(18);
+        else if (qual.includes("11")) intervals.push(17);
+
+        if (qual.includes("b13")) intervals.push(20);
+        else if (qual.includes("13")) intervals.push(21);
+
+        // --- INVERSION LOGIC ---
+        let invOffset = 0;
+        if (inv === 1 && intervals.length > 1) invOffset = 1;
+        else if (inv === 2 && intervals.length > 2) invOffset = 2;
+
+        // Bass note closest to center
+        let bassInterval = intervals[invOffset];
+        let bassPc = (rIdx + bassInterval) % 12;
+        let bassMidi = -1;
+        let minBassDist = 999;
+
+        for (let oct = 0; oct <= 9; oct++) {
+          let cand = oct * 12 + bassPc;
+          let dist = Math.abs(cand - cMidi);
+          if (dist < minBassDist) {
+            minBassDist = dist;
+            bassMidi = cand;
+          }
+        }
+
+        // Voice remaining notes ABOVE the bass note
+        let voicedNotes = [bassMidi];
+        intervals.forEach((interval, idx) => {
+          if (idx === invOffset) return;
+          let pc = (rIdx + interval) % 12;
+          let n = -1;
+          for (let oct = 0; oct <= 9; oct++) {
+            let cand = oct * 12 + pc;
+            if (cand > bassMidi) {
+              n = cand;
+              break;
+            }
+          }
+          if (n !== -1) voicedNotes.push(n);
+        });
+
+        voicedNotes.sort((a, b) => a - b);
+
+        if (spread) voicedNotes = applyAcademicDropSpread(voicedNotes);
+
+        // Apply Bass Drop (kept as your design: drops ROOT in bass region)
+        if (bassDrop !== 0) {
+          let cOct = Math.floor(cMidi / 12);
+          let targetBassOct = cOct + bassDrop;
+          let bassNote = targetBassOct * 12 + rIdx;
+          let lowest = Math.min(...voicedNotes);
+          if (bassNote >= lowest) bassNote -= 12;
+          voicedNotes.push(bassNote);
+        }
+
+        voicedNotes.sort((a, b) => a - b);
+        return voicedNotes;
+      }
+
+      function midiToNoteName(midi) {
+        return displayNote(SHARPS[midi % 12], keyRoot, keyType);
+      }
+
+      function getTheoryAnalysis(prevRoot, prevQual, currRoot, currQual) {
+        if (!prevRoot) return "Establishes the harmonic center (Tonic function).";
+
+        const pIdx = SHARPS.indexOf(toSharp(prevRoot));
+        const cIdx = SHARPS.indexOf(toSharp(currRoot));
+        const interval = (cIdx - pIdx + 12) % 12;
+
+        let mvmt = "";
+        if (interval === 5) mvmt = "Circle of Fifths movement (Strong resolution).";
+        else if (interval === 7) mvmt = "Moving to the Dominant (Builds tension).";
+        else if (interval === 1) mvmt = "Chromatic Step Up (Leading tone).";
+        else if (interval === 11) mvmt = "Chromatic Step Down (Smooth).";
+        else if (interval === 2) mvmt = "Whole Step Up.";
+        else if (interval === 10) mvmt = "Whole Step Down.";
+        else if ([3, 4].includes(interval)) mvmt = "Third relation (Mediants).";
+        else if ([8, 9].includes(interval)) mvmt = "Third relation (Sub-mediants).";
+        else if (interval === 6) mvmt = "Tritone jump (Destabilizing).";
+        else if (interval === 0) {
+          if (prevQual === currQual) mvmt = "Static Repetition.";
+          else mvmt = "Static Root (Quality change).";
+        }
+
+        if (interval === 5 && (prevQual.includes("7") || prevQual.includes("9")) && currQual.includes("Maj"))
+          return `Perfect Cadence (V -> I). ${mvmt} Resolves all tension.`;
+        if (interval === 5 && prevQual.includes("m") && currQual.includes("7") && !currQual.includes("Maj"))
+          return `ii-V Progression. ${mvmt} Sets up a resolution.`;
+        if (interval === 11 && prevQual.includes("7") && currQual.includes("Maj"))
+          return `Tritone Substitution. Resolves chromatically to target.`;
+        if (interval === 7 && prevQual.includes("Maj") && currQual.includes("Maj"))
+          return `Plagal Cadence (IV -> I). 'Amen' resolution.`;
+        if (interval === 2 && prevQual.includes("7") && currQual.includes("Maj"))
+          return `Backdoor Resolution. Surprise resolution to Tonic.`;
+
+        return `${mvmt} connects ${prevRoot} to ${currRoot}.`;
+      }
+
+      // --- STATE ---
+      let appState = "start";
+      let keyRoot = null;     // stored as SHARP spelling
+      let keyType = "Major";  // "Major" | "Minor"
+      let currentRoot = null;
+      let currentQual = null;
+      let history = [];
+      let suggestions = [];
+      let centerNoteName = "C4";
+      let centerMidi = 60;
+
+      // Voicing state
+      let bassDrop = 0;       // 0, -1, -2
+      let inversionState = 0; // 0=Root,1=1st,2=2nd
+      let spreadMode = true;  // ON/OFF
+
+      let strumMode = true;
+      let isPlaying = false;
+      let playbackIndex = 0;
+      let playbackTimer = null;
+      let bpm = 90;
+      let beatsPerChord = 2;
+
+      function syncVoiceUI() {
+        voiceBassSelect.value = String(bassDrop);
+        voiceInvSelect.value = String(inversionState);
+        voiceSpreadBtn.classList.toggle("on", !!spreadMode);
+        voiceSpreadBtn.innerText = spreadMode ? "ON" : "OFF";
+      }
+
+      // --- CONTROLS ---
+      document.getElementById("strum-btn").onclick = function () {
+        strumMode = !strumMode;
+        this.innerText = `STRUM: ${strumMode ? "ON" : "OFF"}`;
+      };
+
+      const playBtn = document.getElementById("play-btn");
+      playBtn.onclick = () => {
+        if (isPlaying) {
+          isPlaying = false;
+          clearTimeout(playbackTimer);
+          playBtn.innerText = "▶ PLAY";
+        } else {
+          startPlayback();
+        }
+      };
+
+      document.getElementById("stop-btn").onclick = () => {
+        isPlaying = false;
+        clearTimeout(playbackTimer);
+        playbackIndex = 0;
+        playBtn.innerText = "▶ PLAY";
+        document.querySelectorAll(".history-item").forEach((el) => el.classList.remove("playing"));
+      };
+
+      document.getElementById("bpm-btn").onclick = function () {
+        bpm += 10;
+        if (bpm > 160) bpm = 60;
+        this.innerText = `BPM: ${bpm}`;
+      };
+
+      document.getElementById("interval-btn").onclick = function () {
+        let opts = [
+          { b: 1, t: "1/4 BAR" },
+          { b: 2, t: "1/2 BAR" },
+          { b: 4, t: "1 BAR" },
+        ];
+        let cur = opts.find((o) => o.b === beatsPerChord) || opts[1];
+        let nextIdx = (opts.indexOf(cur) + 1) % opts.length;
+        beatsPerChord = opts[nextIdx].b;
+        this.innerText = `${opts[nextIdx].t}`;
+      };
+
+      document.getElementById("help-btn").onclick = () => (helpModal.style.display = "flex");
+      document.getElementById("patreon-btn").onclick = () => window.open("https://patreon.com/ezbot", "_blank");
+
+      // --- VOICE MENU HOOKS ---
+      voiceBtn.onclick = () => renderVoiceSetup();
+      closeVoiceBtn.onclick = () => (voiceModal.style.display = "none");
+
+      voiceBassSelect.onchange = () => {
+        bassDrop = parseInt(voiceBassSelect.value, 10) || 0;
+        if (appState === "main") renderMain(true);
+      };
+
+      voiceInvSelect.onchange = () => {
+        inversionState = parseInt(voiceInvSelect.value, 10) || 0;
+        if (appState === "main") renderMain(true);
+      };
+
+      voiceSpreadBtn.onclick = () => {
+        spreadMode = !spreadMode;
+        syncVoiceUI();
+        if (appState === "main") renderMain(true);
+      };
+
+      function renderVoiceSetup() {
+        voiceModal.style.display = "flex";
+        syncVoiceUI();
+      }
+
+      // --- MIDI UI HOOKS ---
+      midiBtn.onclick = () => renderMidiSetup();
+      closeMidiBtn.onclick = () => (midiModal.style.display = "none");
+
+      audioEnableBtn.onclick = () => {
+        audioEnabled = !audioEnabled;
+        audioEnableBtn.innerText = audioEnabled ? "ON" : "OFF";
+        audioEnableBtn.classList.toggle("on", audioEnabled);
+      };
+
+      midiGateSelect.value = "0.25";
+      midiGateSelect.onchange = () => {
+        midiGateBeats = parseFloat(midiGateSelect.value);
+      };
+
+      midiEnableBtn.onclick = async () => {
+        initAudio();
+        const ok = midiAccess ? true : await initMidi();
+        if (!ok) {
+          midiEnabled = false;
+          midiOutput = null;
+          syncMidiEnableButton();
+          syncMidiStatus("MIDI access denied or unsupported in this browser.");
+          syncTitlebarMidi();
+          return;
+        }
+
+        midiEnabled = !midiEnabled;
+
+        if (midiEnabled) {
+          populateMidiPortSelect();
+          const outId = midiPortSelect.value;
+          midiOutput = outId ? midiAccess.outputs.get(outId) : null;
+
+          if (!midiOutput) {
+            const outs = getMidiOutputsArray();
+            if (outs[0]) {
+              midiOutput = outs[0];
+              midiPortSelect.value = outs[0].id;
+            }
+          }
+
+          if (!midiOutput) {
+            midiEnabled = false;
+            syncMidiEnableButton();
+            syncMidiStatus("No MIDI outputs found. Connect a device, then reopen MIDI setup.");
+            syncTitlebarMidi();
+            return;
+          }
+        } else {
+          midiOutput = null;
+        }
+
+        syncMidiEnableButton();
+        syncMidiStatus();
+        syncTitlebarMidi();
+      };
+
+      midiPortSelect.onchange = () => {
+        if (!midiAccess) return;
+        const outId = midiPortSelect.value;
+        midiOutput = outId ? midiAccess.outputs.get(outId) : null;
+
+        if (midiEnabled && !midiOutput) midiEnabled = false;
+
+        syncMidiEnableButton();
+        syncMidiStatus();
+        syncTitlebarMidi();
+      };
+
+      midiChannelSelect.onchange = () => {
+        midiChannel = clampMidiChannel(midiChannelSelect.value);
+        syncMidiStatus();
+        syncTitlebarMidi();
+      };
+
+      function syncMidiEnableButton() {
+        midiEnableBtn.classList.toggle("on", !!midiEnabled);
+        midiEnableBtn.innerText = midiEnabled ? "ON" : "OFF";
+      }
+
+      function syncMidiStatus(overrideMsg) {
+        const msg = overrideMsg
+          ? overrideMsg
+          : !navigator.requestMIDIAccess
+          ? "WebMIDI not supported in this browser."
+          : !midiAccess
+          ? "MIDI not initialized. Click MIDI OUT to request access and populate ports."
+          : (() => {
+              const outs = getMidiOutputsArray();
+              const outName = midiOutput ? midiOutput.name || "Unnamed Device" : "None";
+              const enabled = midiEnabled ? "ENABLED" : "DISABLED";
+              return `Status: ${enabled}\nPort: ${outName}\nChannel: ${clampMidiChannel(midiChannel)}\nOutputs detected: ${outs.length}`;
+            })();
+
+        midiStatus.innerText = msg;
+      }
+
+      function syncTitlebarMidi() {
+        const on = !!midiEnabled && !!midiOutput;
+        wtMidiLed.classList.toggle("on", on);
+        const portName = midiOutput ? midiOutput.name || "Unnamed" : "None";
+        wtMidiMini.textContent = on ? `ON · CH ${clampMidiChannel(midiChannel)} · ${portName}` : "OFF";
+      }
+
+      function populateMidiPortSelect() {
+        midiPortSelect.innerHTML = "";
+
+        if (!midiAccess) {
+          const opt = document.createElement("option");
+          opt.value = "";
+          opt.textContent = "MIDI not initialized";
+          midiPortSelect.appendChild(opt);
+          return;
+        }
+
+        const outs = getMidiOutputsArray();
+
+        if (outs.length === 0) {
+          const opt = document.createElement("option");
+          opt.value = "";
+          opt.textContent = "No MIDI outputs found";
+          midiPortSelect.appendChild(opt);
+          return;
+        }
+
+        outs.forEach((o) => {
+          const opt = document.createElement("option");
+          opt.value = o.id;
+          opt.textContent = o.name || `MIDI Output (${o.id})`;
+          midiPortSelect.appendChild(opt);
+        });
+
+        if (midiOutput && midiAccess.outputs.get(midiOutput.id)) {
+          midiPortSelect.value = midiOutput.id;
+        } else {
+          midiPortSelect.value = outs[0].id;
+        }
+      }
+
+      function populateMidiChannelSelect() {
+        midiChannelSelect.innerHTML = "";
+        for (let ch = 1; ch <= 16; ch++) {
+          const opt = document.createElement("option");
+          opt.value = String(ch);
+          opt.textContent = String(ch);
+          midiChannelSelect.appendChild(opt);
+        }
+        midiChannelSelect.value = String(clampMidiChannel(midiChannel));
+      }
+
+      async function renderMidiSetup() {
+        midiModal.style.display = "flex";
+        populateMidiChannelSelect();
+        syncMidiEnableButton();
+        syncMidiStatus();
+
+        if (!midiAccess && navigator.requestMIDIAccess) {
+          const ok = await initMidi();
+          if (ok) {
+            populateMidiPortSelect();
+            if (midiEnabled) {
+              const outId = midiPortSelect.value;
+              midiOutput = outId ? midiAccess.outputs.get(outId) : null;
+            }
+            syncMidiStatus();
+          } else {
+            populateMidiPortSelect();
+            syncMidiStatus("MIDI access denied or unavailable.");
+          }
+        } else {
+          populateMidiPortSelect();
+          syncMidiStatus();
+        }
+
+        syncTitlebarMidi();
+      }
+
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          if (helpModal.style.display === "flex") helpModal.style.display = "none";
+          if (midiModal.style.display === "flex") midiModal.style.display = "none";
+          if (voiceModal.style.display === "flex") voiceModal.style.display = "none";
+        }
+      });
+
+      // --- PLAYBACK ---
+      function startPlayback() {
+        if (history.length === 0) return;
+        isPlaying = true;
+        if (playbackIndex >= history.length) playbackIndex = 0;
+        playBtn.innerText = "⏸ PAUSE";
+        playNextStep();
+      }
+
+      function playNextStep() {
+        if (!isPlaying) return;
+        if (playbackIndex >= history.length) {
+          isPlaying = false;
+          playBtn.innerText = "▶ PLAY";
+          return;
+        }
+
+        let h = history[playbackIndex];
+        let midi;
+        if (h.locked && h.lockedMidi) midi = h.lockedMidi;
+        else midi = getVoicedMidi(h.root, h.qual, centerMidi, bassDrop, inversionState, spreadMode);
+
+        let historyEls = document.querySelectorAll(".history-item");
+        historyEls.forEach((el) => el.classList.remove("playing"));
+        if (historyEls[playbackIndex]) historyEls[playbackIndex].classList.add("playing");
+
+        let duration = (60 / bpm) * beatsPerChord;
+        playMidiNotes(midi, duration);
+
+        playbackIndex++;
+        playbackTimer = setTimeout(playNextStep, duration * 1000);
+      }
+
+      function setCenter(midi) {
+        centerMidi = midi;
+        let octave = Math.floor(midi / 12) - 1;
+        centerNoteName = SHARPS[midi % 12] + octave;
+        updateCenterMarker(centerMidi);
+        initAudio();
+        playFreq(440 * Math.pow(2, (midi - 69) / 12), audioCtx.currentTime);
+        if (appState === "main") renderMain(true);
+        else renderStart();
+      }
+
+      function print(text, cssClass = "") {
+        const span = document.createElement("div");
+        span.innerHTML = text;
+        if (cssClass) span.className = cssClass;
+        outDiv.appendChild(span);
+        outDiv.scrollTop = outDiv.scrollHeight;
+      }
+      function clear() {
+        outDiv.innerHTML = "";
+      }
+
+      function renderStart() {
+        appState = "start";
+        clear();
+        print(`[C]ENTER: ${centerNoteName} | [H]ELP | [M]IDI | [V]OICE`, "");
+        print("");
+        print("INITIATE: ENTER CHORD (e.g. Gm6)", "");
+        print("OR PRESS [ENTER] FOR RANDOM START", "");
+        theoryText.innerText = "Welcome. Enter a chord to begin analysis.";
+      }
+
+      function removeHistoryAt(index) {
+        if (index < 0 || index >= history.length) return;
+
+        history.splice(index, 1);
+
+        if (playbackIndex > index) playbackIndex = Math.max(0, playbackIndex - 1);
+        if (playbackIndex >= history.length) playbackIndex = 0;
+
+        if (history.length === 0) {
+          isPlaying = false;
+          clearTimeout(playbackTimer);
+          playbackIndex = 0;
+          keyRoot = null;
+          currentRoot = null;
+          currentQual = null;
+          suggestions = [];
+          renderStart();
+          return;
+        }
+
+        const last = history[history.length - 1];
+        currentRoot = last.root;
+        currentQual = last.qual;
+        suggestions = [];
+        renderMain(true);
+      }
+
+      function renderMain(keepScroll = false) {
+        let scrollPos = outDiv.scrollTop;
+        appState = "main";
+        clear();
+
+        let dispKey = displayNote(keyRoot, keyRoot, keyType);
+        print(`KEY: ${dispKey} ${keyType}`, "");
+
+        const histContainer = document.createElement("div");
+
+        history.forEach((h, i) => {
+          let span = document.createElement("div");
+          span.className = "history-item";
+          if (h.locked) span.classList.add("locked");
+          let lockIcon = h.locked ? "*" : "";
+          span.innerText = `${h.display}${lockIcon}`;
+
+          span.onclick = (e) => {
+            if (e.ctrlKey) {
+              removeHistoryAt(i);
+              return;
+            }
+
+            if (e.shiftKey) {
+              h.locked = !h.locked;
+              if (h.locked) h.lockedMidi = getVoicedMidi(h.root, h.qual, centerMidi, bassDrop, inversionState, spreadMode);
+              else h.lockedMidi = null;
+              renderMain(true);
+              return;
+            }
+
+            let midi = h.locked && h.lockedMidi ? h.lockedMidi : getVoicedMidi(h.root, h.qual, centerMidi, bassDrop, inversionState, spreadMode);
+            playMidiNotes(midi);
+          };
+
+          span.onmouseenter = () => {
+            let prev = history[i - 1];
+            let t = getTheoryAnalysis(prev ? prev.root : null, prev ? prev.qual : null, h.root, h.qual);
+            theoryText.innerText = `[STEP ${i + 1}]: ${t}`;
+          };
+          span.onmouseleave = () => resetTheoryText();
+
+          histContainer.appendChild(span);
+          if (i < history.length - 1) {
+            let arrow = document.createElement("span");
+            arrow.innerText = " -> ";
+            arrow.style.color = "rgba(197,206,232,0.35)";
+            histContainer.appendChild(arrow);
+          }
+        });
+        outDiv.appendChild(histContainer);
+
+        let sep = document.createElement("div");
+        sep.className = "history-separator";
+        sep.innerText = "SUGGESTIONS";
+        outDiv.appendChild(sep);
+
+        if (suggestions.length === 0) generateSuggestions();
+
+        suggestions.forEach((s, i) => {
+          s.midiArr = getVoicedMidi(s.root, s.qual, centerMidi, bassDrop, inversionState, spreadMode);
+          s.notesStr = s.midiArr.map((m) => midiToNoteName(m)).join("-");
+
+          let row = document.createElement("div");
+          row.className = "suggestion-row";
+
+          let tagClass = "t-dia";
+          if (s.type.includes("Res")) tagClass = "t-res";
+          else if (s.type.includes("Sec")) tagClass = "t-sec";
+          else if (s.type.includes("Bor")) tagClass = "t-bor";
+          else if (s.type.includes("Tri")) tagClass = "t-tri";
+          else if (s.type.includes("Cir")) tagClass = "t-cir";
+          else if (s.type.includes("Tonic")) tagClass = "t-res";
+
+          row.innerHTML = `
+            <span class="s-idx">${i + 1}</span>
+            <span class="type-tag ${tagClass}">${s.type}</span>
+            <span class="s-name">${s.display}</span>
+            <span class="s-notes">♪ ${s.notesStr}</span>
+          `;
+
+          row.onclick = (e) => {
+            if (e.shiftKey) {
+              selectSuggestion(s);
+            } else {
+              playMidiNotes(s.midiArr);
+            }
+          };
+
+          row.onmouseenter = () => {
+            let t = getTheoryAnalysis(currentRoot, currentQual, s.root, s.qual);
+            theoryText.innerText = `[OPTION ${i + 1}]: ${t}`;
+          };
+          row.onmouseleave = () => resetTheoryText();
+
+          outDiv.appendChild(row);
+        });
+
+        outDiv.scrollTop = keepScroll ? scrollPos : outDiv.scrollTop;
+        resetTheoryText();
+      }
+
+      function selectSuggestion(s) {
+        currentRoot = s.root;
+        currentQual = s.qual;
+        suggestions = [];
+        history.push({
+          display: s.display,
+          root: s.root,
+          qual: s.qual,
+          locked: false,
+          lockedMidi: null,
+        });
+        playMidiNotes(s.midiArr);
+        renderMain();
+      }
+
+      function resetTheoryText() {
+        if (history.length > 0) {
+          let curr = history[history.length - 1];
+          let prev = history.length > 1 ? history[history.length - 2] : null;
+          let t = getTheoryAnalysis(prev ? prev.root : null, prev ? prev.qual : null, curr.root, curr.qual);
+          theoryText.innerText = t;
+        }
+      }
+
+      function generateSuggestions() {
+        suggestions = [];
+        let rSharp = toSharp(currentRoot);
+        let kSharp = toSharp(keyRoot);
+        let scaleInts = SCALES[keyType];
+        let kIdx = SHARPS.indexOf(kSharp);
+        let scaleNotes = scaleInts.map((i) => SHARPS[(kIdx + i) % 12]);
+
+        const getIntNote = (r, i) => SHARPS[(SHARPS.indexOf(r) + i) % 12];
+        const getRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+        let diatonicPool = [];
+        let exoticPool = [];
+
+        if (!scaleNotes.includes(rSharp) || Math.random() > 0.6) {
+          let q = keyType === "Major" ? getRandom(["Maj7", "Maj9", "6/9"]) : getRandom(["m7", "m9", "m11"]);
+          diatonicPool.push({ root: kSharp, qual: q, type: "Tonic (I)" });
+        }
+
+        let fourth = getIntNote(rSharp, 5);
+        let fQual = "Maj7";
+        if (scaleNotes.indexOf(fourth) === -1) {
+          exoticPool.push({ root: fourth, qual: "7", type: "Circle (Non-Dia)" });
+        } else {
+          if (keyType === "Major") {
+            if (scaleNotes.indexOf(fourth) === 4) fQual = "7";
+            else if (scaleNotes.indexOf(fourth) === 1) fQual = "m7";
+          }
+          diatonicPool.push({ root: fourth, qual: fQual, type: "Circle (4th)" });
+        }
+
+        exoticPool.push({ root: getIntNote(rSharp, 2), qual: getRandom(["7", "9", "13"]), type: "Secondary Dom" });
+
+        if (keyType === "Major") {
+          exoticPool.push({ root: getIntNote(kSharp, 8), qual: "Maj7", type: "Borrowed (bVI)" });
+          exoticPool.push({ root: getIntNote(kSharp, 10), qual: "7", type: "Borrowed (bVII)" });
+          exoticPool.push({ root: getIntNote(kSharp, 5), qual: "m7", type: "Borrowed (iv)" });
+        }
+
+        exoticPool.push({ root: getIntNote(rSharp, 6), qual: "7", type: "Tritone Sub" });
+
+        scaleNotes.forEach((note, idx) => {
+          if (note === rSharp) return;
+          let q = "m7";
+          if (keyType === "Major") {
+            if ([0, 3].includes(idx)) q = "Maj7";
+            if ([1, 2, 5].includes(idx)) q = "m7";
+            if (idx === 4) q = "7";
+          } else {
+            if ([2, 5].includes(idx)) q = "Maj7";
+          }
+          diatonicPool.push({ root: note, qual: q, type: "Diatonic" });
+        });
+
+        let finals = [];
+        let res = diatonicPool.find((p) => p.type === "Tonic (I)");
+        if (res) finals.push(res);
+
+        diatonicPool = diatonicPool.filter((p) => p.type !== "Tonic (I)");
+        diatonicPool.sort(() => 0.5 - Math.random());
+        if (diatonicPool[0]) finals.push(diatonicPool[0]);
+        if (diatonicPool[1]) finals.push(diatonicPool[1]);
+
+        exoticPool.sort(() => 0.5 - Math.random());
+        exoticPool.forEach((p) => finals.push(p));
+        diatonicPool.forEach((p) => finals.push(p));
+
+        let unique = [];
+        finals.forEach((f) => {
+          if (f.root === currentRoot && f.qual === currentQual) return;
+          // FIX: dedupe by root+qual (not just root)
+          if (!unique.some((u) => u.root === f.root && u.qual === f.qual)) unique.push(f);
+        });
+
+        suggestions = unique.slice(0, 8);
+        suggestions.forEach((s) => {
+          s.display = displayNote(s.root, keyRoot, keyType) + s.qual;
+        });
+      }
+
+      function handleInput(val) {
+        val = val.trim();
+        if (!val) return;
+
+        if (val.toLowerCase() === "h") {
+          helpModal.style.display = "flex";
+          return;
+        }
+        if (val.toLowerCase() === "m") {
+          renderMidiSetup();
+          return;
+        }
+        if (val.toLowerCase() === "v") {
+          renderVoiceSetup();
+          return;
+        }
+        if (val.toLowerCase() === "q" || val === "0") {
+          history = [];
+          keyRoot = null;
+          currentRoot = null;
+          currentQual = null;
+          suggestions = [];
+          renderStart();
+          return;
+        }
+
+        if (appState === "start") {
+          let match = val.match(/^([A-Ga-g])([#bBs]?)(.*)/);
+          if (match) {
+            let r = match[1].toUpperCase() + match[2].replace("s", "#");
+            let q = match[3] || "Maj";
+            const isMinorQuality = /^(m|min)/.test(q) && !/Maj/.test(q);
+            setupProgression(toSharp(r), q, isMinorQuality ? "Minor" : "Major");
+          }
+          return;
+        }
+
+        if (appState === "main") {
+          if (parseInt(val) >= 1 && parseInt(val) <= 8) {
+            let idx = parseInt(val) - 1;
+            if (suggestions[idx]) {
+              let s = suggestions[idx];
+              currentRoot = s.root;
+              currentQual = s.qual;
+              suggestions = [];
+              history.push({ display: s.display, root: s.root, qual: s.qual, locked: false, lockedMidi: null });
+              playMidiNotes(s.midiArr);
+              renderMain();
+            }
+          }
+        }
+      }
+
+      function triggerRandomStart() {
+        if (appState === "start") {
+          let r = SHARPS[Math.floor(Math.random() * 12)];
+          let q = ["Maj9", "m9", "m11", "6/9", "Maj7#11"][Math.floor(Math.random() * 5)];
+          const isMinorQuality = /^(m|min)/.test(q) && !/Maj/.test(q);
+          setupProgression(r, q, isMinorQuality ? "Minor" : "Major");
+        }
+      }
+
+      function setupProgression(r, q, type) {
+        keyRoot = r;
+        keyType = type;
+        currentRoot = r;
+        currentQual = q;
+        suggestions = [];
+
+        history.push({
+          display: displayNote(r, keyRoot, keyType) + q,
+          root: r,
+          qual: q,
+          locked: false,
+          lockedMidi: null
+        });
+
+        playMidiNotes(getVoicedMidi(r, q, centerMidi, bassDrop, inversionState, spreadMode));
+        renderMain();
+      }
+
+      inBox.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          initAudio();
+          if (inBox.value.trim() === "") {
+            if (appState === "start") triggerRandomStart();
+            else handleInput("");
+          } else {
+            handleInput(inBox.value);
+          }
+          inBox.value = "";
+        }
+      });
+
+      renderKeyboard();
+      renderStart();
+      syncTitlebarMidi();
+      syncVoiceUI();
+    })();
+  </script>
+</div>
