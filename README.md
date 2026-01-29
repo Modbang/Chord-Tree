@@ -10,15 +10,4 @@ Chord Tree is an interactive chord-progression and voicing exploration tool (wit
 - MIDI out routing (WebMIDI) + optional internal audio engine
 - Voicing controls (Bass Drop, Inversions, Spread)
 
-## Quick Start
 This project is a static web app.
-
-### Option A: Just open it
-Open `index.html` in a modern browser.
-
-### Option B: Run a local server (recommended)
-Any static server works.
-
-Example (Python):
-```bash
-python -m http.server 8080
